@@ -9,12 +9,14 @@ import (
 	"errors"
 	// "fmt"
 	"sync"
+
+	"github.com/joeshaw/gengen/generic"
 )
 
 // feedInputs starts a goroutine to loop through inputs and send the
-// input on the interface{} channel. If done is closed, feedInputs abandons its work.
-func feedInputs(done <-chan int, inputs []interface{}) (<-chan interface{}, <-chan error) {
-	inputsChan := make(chan interface{})
+// input on the generic.T channel. If done is closed, feedInputs abandons its work.
+func feedInputs(done <-chan int, inputs []generic.T) (<-chan generic.T, <-chan error) {
+	inputsChan := make(chan generic.T)
 	errChan := make(chan error, 1)
 
 	go func() {
@@ -38,11 +40,11 @@ func feedInputs(done <-chan int, inputs []interface{}) (<-chan interface{}, <-ch
 }
 
 type resultWithError struct {
-	result interface{}
+	result generic.T
 	err    error
 }
 
-func work(done <-chan int, inputs <-chan interface{}, c chan<- resultWithError, w Worker) {
+func work(done <-chan int, inputs <-chan generic.T, c chan<- resultWithError, w Worker) {
 	for input := range inputs {
 		// fmt.Println("Got ", input, " in worker")
 		re := resultWithError{}
@@ -60,12 +62,12 @@ func work(done <-chan int, inputs <-chan interface{}, c chan<- resultWithError, 
 // Also for multiple result, You can wrap them into one result struct,
 // In Worker, If it return any error, All the other workers will stop immediately.
 // If you want to ignore Error in some of the workers, Then return nil error in your Worker func.
-type Worker func(input interface{}) (result interface{}, err error)
+type Worker func(input generic.T) (result generic.T, err error)
 
 // It start `workerNum` of goroutines immediately to consume the value of inputs, and provide input to `Worker` func.
 // and run the `Worker`, If any worker finish, it will put the result value into a channel, then append to the results value.
 // The func will block the execution and wait for all goroutines to finish, then return results all together.
-func ParallelRun(workerNum int, w Worker, inputs []interface{}) (results []interface{}, err error) {
+func ParallelRun(workerNum int, w Worker, inputs []generic.T) (results []generic.T, err error) {
 	// closes the done channel when it returns; it may do so before
 	// receiving all the values from c and errc.
 	done := make(chan int)
