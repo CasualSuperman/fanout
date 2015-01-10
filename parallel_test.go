@@ -6,6 +6,8 @@ import (
 	"math/rand"
 	"testing"
 	"time"
+
+	"github.com/joeshaw/gengen/generic"
 )
 
 func TestParallelRun(t *testing.T) {
@@ -13,7 +15,7 @@ func TestParallelRun(t *testing.T) {
 
 	inputNum := 50
 
-	vals := []interface{}{}
+	vals := []generic.T{}
 	for i := 0; i < inputNum; i++ {
 		vals = append(vals, inputVal{number: i, giveError: ""})
 	}
@@ -32,7 +34,7 @@ func TestParallelRunWithError(t *testing.T) {
 
 	inputNum := 20
 
-	vals := []interface{}{}
+	vals := []generic.T{}
 	for i := 0; i < inputNum; i++ {
 		vals = append(vals, inputVal{number: i, giveError: ""})
 	}
@@ -45,7 +47,7 @@ func TestParallelRunWithError(t *testing.T) {
 	}
 }
 
-func errw(i interface{}) (r interface{}, e error) {
+func errw(i generic.T) (r generic.T, e error) {
 	e = errors.New("I am an error")
 	return
 }
@@ -55,7 +57,7 @@ type inputVal struct {
 	number    int
 }
 
-func w(i interface{}) (r interface{}, e error) {
+func w(i generic.T) (r generic.T, e error) {
 	var val = i.(inputVal)
 	result := rand.Intn(1000)
 	time.Sleep(time.Millisecond * time.Duration(result))
